@@ -1,0 +1,22 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.navbar-header {
+    width: 100%;
+    height: 60px; /* Increased height for visibility */
+    padding: 10px 25px; /* Adjusted padding */
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(79deg, rgb(3, 3, 154), rgb(207, 8, 41), rgb(4, 4, 150)); /* Fixed gradient syntax */
+}
+
+.link {
+    color: white;
+    text-decoration: none;
+    margin: 0 10px;
+}
