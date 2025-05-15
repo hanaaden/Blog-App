@@ -1,65 +1,91 @@
-/* login.css */
-.login-container {
+body {
+  margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #e9ecef;
+  }
+
+.login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  margin: 0;
 }
 
 .login-form {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  width: 300px;
+  background-color: #73946B;
+  padding: 50px; /* Increased padding for larger form size */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 400px; /* Increased width for a larger form */
 }
 
 .login-title {
   text-align: center;
-  color: #333;
+  color: white;
+  margin-bottom: 20px;
 }
 
 .login-input-group {
-  margin-bottom: 15px;
+  margin-bottom: 15px; /* Adjusted margin for better spacing */
 }
 
 .login-label {
   margin-bottom: 5px;
-  color: #555;
+  color: white;
 }
 
 .login-input {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 5px;
   width: 100%;
 }
 
 .login-button {
-  margin-top: 12px;
-  padding: 10px;
-  background-color: #007bff;
+  margin-top: 10px; /* Adjusted margin for spacing above */
+  padding: 12px;
+ background-color: #537d5d; /* Button color */
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
   width: 100%;
+  font-size: 16px;
+  transition: background-color 0.3s; /* Smooth transition */
+  border: 3px solid white ;
 }
 
 .login-button:hover {
-  background-color: #0056b3;
+  background-color: #546c4e;/* Darker blue on hover */
 }
 
 .login-note {
   text-align: center;
-  color: #777;
+  margin: 15px 0; /* Adjusted margin for spacing */
+  color: white;
+} 
+
+.login-signup-button {
+  padding: 12px; /* Increased padding for consistency */
+  background-color: #007bff; /* Sign up button color */
+  color: white;
+  
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+
 }
 
-@media (max-width: 400px) {
+.login-signup-button:hover {
+  background-color: #546c4e; /* Darker blue on hover */
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+
   .login-form {
-    width: 90%;
+    width: 90%; /* Adjust for smaller screens */
   }
 }
