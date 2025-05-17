@@ -6,87 +6,125 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
-const UserModel= require('./models/UserModel')
+const fs = require('fs');
+const UserModel = require('./models/UserModel');
+const PostModel = require('./models/PostModel');
+
 const app = express();
+
+// Ensure the Images directory exists
+const imagesDir = path.join(__dirname, 'public', 'Images');
+if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+}
 
 // Middleware setup
 app.use(cors({
-  origin: 'http://localhost:5173', // Update with your frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/public', express.static('public')); // Serve static files from 'public'
 
-// Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/Blog', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
-
-  const verifyUser=(req,res,next)=>{
-   const token = req.cookies.token;
-   if(!token){
-    return res.json("the token is missing")
-   }else{
-    jwt.verify(token,"jwt-secret-key",(err,decoded)=>{
-      if(err){
-        return res.json("the token is wrong")
-      }else{
-        req.email=decoded.email;
-        req.username=decoded.username;
-        next()
-      }
-    })
-   }
-  }
-
-  app.get('/',verifyUser,(req,res)=>{
-   return res.json({emaial: req.email, username:req.username})
-  })
-
-// Register endpoint
-app.post('/register', (req, res) => {
-  const { username, email, password } = req.body;
-  bcrypt.hash(password, 10)
-    .then(hash => {
-      UserModel.create({ username, email, password: hash })
-        .then(user => res.json(user))
-        .catch(err => res.status(400).json(err));
-    })
-    .catch(err => console.log(err));
-});
-
-// Login endpoint
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  UserModel.findOne({ email: email })
-    .then(user => {
-      if (user) {
-        bcrypt.compare(password, user.password, (err, response) => {
-          if (response) {
-            const token = jwt.sign({ email: user.email, username: user.username }, "jwt-secret-key", { expiresIn: "1d" });
-             res.cookie('token', token, { 
-              httpOnly: true, 
-              secure: process.env.NODE_ENV === 'production', // Use secure in production
-              sameSite: 'Strict' // Adjust as needed
-            });
-            return res.json('success');
-          } else {
-            return res.status(401).json("Password is incorrect");
-          }
+// Connect to MongoDB and start server
+mongoose.connect('mongodb://127.0.0.1:27017/Blog')
+    .then(() => {
+        console.log('✅ MongoDB connected');
+        app.listen(3001, () => {
+            console.log('🚀 Server is running on port 3001');
         });
-      } else {
-        return res.status(404).json("User does not exist");
-      }
     })
-    .catch(err => res.status(500).json(err));
+    .catch(err => {
+        console.error('❌ Failed to connect to MongoDB:', err);
+    });
+
+// Middleware for verifying JWT
+const verifyUser = (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json("The token is missing");
+    }
+    jwt.verify(token, "jwt-secret-key", (err, decoded) => {
+        if (err) {
+            return res.status(401).json("The token is wrong");
+        }
+        req.email = decoded.email;
+        req.username = decoded.username;
+        next();
+    });
+};
+
+// Protected route
+app.get('/', verifyUser, (req, res) => {
+    return res.json({ email: req.email, username: req.username });
 });
 
-app.get('/logout',(req,res)=>{
-  res.clearCookie('token');
-  return res.json("success")
-})
-// Start the server
-app.listen(3001, () => {
-  console.log('Server is running on port 3001');
+// Create a post
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/Images');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+app.post('/create', verifyUser, upload.single('file'), (req, res) => {
+    const newPost = new PostModel({
+        title: req.body.title,
+        description: req.body.description,
+        file: req.file.path,
+        email: req.body.email,
+    });
+
+    newPost.save()
+        .then(() => res.json("File uploaded successfully"))
+        .catch(err => res.status(500).json(err));
+});
+
+// Get post by ID
+app.get('/getpostbyid/:id', (req, res) => {
+    PostModel.findById(req.params.id)
+        .then(post => {
+            if (!post) {
+                return res.status(404).json({ message: "Post not found" });
+            }
+            res.json(post);
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+// Edit post
+app.put('/editpost/:id', (req, res) => {
+    const { title, description } = req.body;
+
+    PostModel.findByIdAndUpdate(req.params.id, { title, description }, { new: true })
+        .then(updatedPost => {
+            if (!updatedPost) {
+                return res.status(404).json({ message: "Post not found" });
+            }
+            res.json("Success");
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+// Delete post
+app.delete('/deletepost/:id', (req, res) => {
+    PostModel.findByIdAndDelete(req.params.id)
+        .then(result => {
+            if (!result) {
+                return res.status(404).json({ message: "Post not found" });
+            }
+            res.json("Success");
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+// Logout endpoint
+app.get('/logout', (req, res) => {
+    res.clearCookie('token');
+    return res.json("success");
 });

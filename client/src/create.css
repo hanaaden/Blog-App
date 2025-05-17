@@ -1,51 +1,61 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  }
+}
 
-.register-container {
+.create-post-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
 
-.register-form {
-  background-color: #73946B;
+.create-post-form {
+  background-color: #73946B; /* Same background color as register form */
   padding: 50px; /* Increased padding for larger form size */
   border-radius: 10px; /* Rounded corners */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 400px; /* Increased width for a larger form */
-  
+  width: 600px; /* Increased width for a larger form */
 }
 
-.register-title {
+.create-post-title {
   text-align: center;
   color: white;
   margin-bottom: 20px;
 }
 
-.register-input-group {
+.create-post-input-group {
   margin-bottom: 20px;
 }
 
-.register-label {
+.create-post-label {
   margin-bottom: 5px;
   color: white;
-  
 }
 
-.register-input {
+.create-post-input {
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 5px;
   width: 100%;
-  
 }
 
-.register-button {
+.create-post-textarea {
   padding: 12px;
-  /* Button color */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  resize: vertical;
+}
+
+.create-post-file-input {
+  border: none; /* Remove default border */
+  padding: 12px;
+}
+
+.create-post-button {
+  padding: 12px;
+  background-color: #537d5d; /* Button color */
   color: white;
   border: 3px solid white;
   border-radius: 5px;
@@ -55,22 +65,22 @@ body {
   transition: background-color 0.3s; /* Smooth transition */
 }
 
-.register-button:hover {
-  background-color: #546c4e;/* Darker blue on hover */
+.create-post-button:hover {
+  background-color: #546c4e; /* Darker on hover */
 }
 
-.register-note {
+.create-post-note {
   text-align: center;
   margin-top: 15px;
   color: white;
 }
 
 @media (max-width: 768px) {
-  .register-container {
+  .create-post-container {
     flex-direction: column;
   }
 
-  .register-form {
+  .create-post-form {
     width: 90%; /* Adjust for smaller screens */
   }
 }
