@@ -9,7 +9,7 @@ function Navbar() {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        axios.get('http://localhost:3001/logout', { withCredentials: true })
+        axios.get('https://blog-app-c5fz.onrender.com/logout', { withCredentials: true })
             .then(res => {
                 if (res.data === "success") {
                     setUser({});

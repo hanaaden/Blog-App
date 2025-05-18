@@ -11,14 +11,14 @@ function Post() {
     const { user } = useContext(UserContext);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/getpostbyid/${id}`, { withCredentials: true })
+        axios.get(`http://https://blog-app-c5fz.onrender.com/getpostbyid/${id}`, { withCredentials: true })
             .then(result => setPost(result.data))
             .catch(err => console.log(err));
     }, [id]);
 
     const handleDelete = () => {
         if (user.email) {
-            axios.delete(`http://localhost:3001/deletepost/${id}`, { withCredentials: true })
+            axios.delete(`https://blog-app-c5fz.onrender.com/deletepost/${id}`, { withCredentials: true })
                 .then(() => {
                     navigate('/'); 
                 })
@@ -31,7 +31,7 @@ function Post() {
     return (
         <div className="post-container">
             <h2>{post.title}</h2>
-            <img src={`http://localhost:3001/${post.file}`} alt={post.title} />
+            <img src={`https://blog-app-c5fz.onrender.com/${post.file}`} alt={post.title} />
             <p>{post.description}</p>
             {user.email === post.email && (
                 <div className='buttons'>

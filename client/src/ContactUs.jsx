@@ -14,7 +14,7 @@ function ContactUs() {
     e.preventDefault();
     const contactData = { name, email, message };
 
-    axios.post('http://localhost:3001/contact', contactData, { withCredentials: true })
+    axios.post('https://blog-app-c5fz.onrender.com/contact', contactData, { withCredentials: true })
       .then(res => {
         if (res.data === "Message sent successfully") {
           console.log(res.data); // Handle success

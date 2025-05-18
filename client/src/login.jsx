@@ -12,7 +12,7 @@ function Login() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:3001/login', { email, password }, { withCredentials: true })
+        axios.post('https://blog-app-c5fz.onrender.com/login', { email, password }, { withCredentials: true })
             .then(res => {
                 if (res.data === "success") {
                     setUser({ email, username: email });

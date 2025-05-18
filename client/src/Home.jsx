@@ -10,7 +10,7 @@ function Home() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get('http://localhost:3001/getposts', { withCredentials: true })
+        axios.get('https://blog-app-c5fz.onrender.com/getposts', { withCredentials: true })
             .then(response => {
                 setPosts(response.data);
             })
@@ -35,7 +35,7 @@ function Home() {
             <div className="container">
                 {posts.map(post => (
                     <Link to={`/post/${post._id}`} key={post._id} className='post'>
-                        <img src={`http://localhost:3001/${post.file}`} alt={post.title} />
+                        <img src={`https://blog-app-c5fz.onrender.com/${post.file}`} alt={post.title} />
                         <div className="post-text">
                             <h3>{post.title}</h3>
                             <p>Read more about {post.title} by clicking anywhere in the</p>

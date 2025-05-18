@@ -11,7 +11,7 @@ function Register() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:3001/register', { username, email, password })
+        axios.post('https://blog-app-c5fz.onrender.com/register', { username, email, password })
             .then(res => navigate('/login'))
             .catch(err => console.log(err));
     };

@@ -11,6 +11,8 @@ import ContactUs from './ContactUs'; // Import the ContactUs component
 import axios from 'axios';
 import HamburgerMenu from './HamburgerMenu';
 
+// https://blog-app-c5fz.onrender.com
+
 export const UserContext = createContext();
 
 function App() {
@@ -19,7 +21,7 @@ function App() {
     axios.defaults.withCredentials = true;
 
     useEffect(() => {
-        axios.get('http://localhost:3001/', { withCredentials: true })
+        axios.get('https://blog-app-c5fz.onrender.com/', { withCredentials: true })
             .then(response => {
                 setUser(response.data);
             })
@@ -27,7 +29,7 @@ function App() {
     }, []);
 
     const handleLogout = () => {
-        axios.get('http://localhost:3001/logout', { withCredentials: true })
+        axios.get('https://blog-app-c5fz.onrender.com/logout', { withCredentials: true })
             .then(res => {
                 if (res.data === "success") {
                     setUser({});

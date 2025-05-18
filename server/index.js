@@ -29,10 +29,10 @@ app.use(cookieParser());
 app.use('/public', express.static('public')); // Serve static files from 'public'
 
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/Blog', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log('✅ MongoDB connected');
-        app.listen(3001, () => {
+        app.listen(process.env.PORT, () => {
             console.log('🚀 Server is running on port 3001');
         });
     })

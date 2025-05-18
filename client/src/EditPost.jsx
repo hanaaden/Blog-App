@@ -10,7 +10,7 @@ function EditPost() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/getpostbyid/${id}`)
+        axios.get(`https://blog-app-c5fz.onrender.com/getpostbyid/${id}`)
             .then(result => {
                 if (result.data) {
                     setTitle(result.data.title);
@@ -22,7 +22,7 @@ function EditPost() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        axios.put(`http://localhost:3001/editpost/${id}`, { title, description })
+        axios.put(`https://blog-app-c5fz.onrender.com/editpost/${id}`, { title, description })
             .then(res => {
                 if (res.data === "Success") {
                     navigate('/'); 

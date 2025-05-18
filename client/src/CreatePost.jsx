@@ -19,7 +19,7 @@ function CreatePost() {
         formData.append('email', user.email);
         formData.append('file', file);
 
-        axios.post('http://localhost:3001/create', formData, { withCredentials: true })
+        axios.post('https://blog-app-c5fz.onrender.com/create', formData, { withCredentials: true })
             .then(res => {
                 if (res.data === "File uploaded successfully") {
                     // Redirect to home page after successful post creation
