@@ -102,7 +102,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-app.post('/create', verifyUser, upload.single('file'), (req, res) => {
+app.post('/create',  upload.single('file'), (req, res) => {
     const newPost = new PostModel({
         title: req.body.title,
         description: req.body.description,
