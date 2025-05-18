@@ -11,7 +11,7 @@ function Post() {
     const { user } = useContext(UserContext);
 
     useEffect(() => {
-        axios.get(`http://https://blog-app-c5fz.onrender.com/getpostbyid/${id}`, { withCredentials: true })
+        axios.get(`https://blog-app-c5fz.onrender.com/getpostbyid/${id}`, { withCredentials: true })
             .then(result => setPost(result.data))
             .catch(err => console.log(err));
     }, [id]);
