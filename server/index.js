@@ -20,7 +20,7 @@ if (!fs.existsSync(imagesDir)) {
 
 // Middleware setup
 app.use(cors({
-    origin: 'http://localhost:5173', // Adjust as needed
+    origin: 'https://blog-app-leap.vercel.app', // Adjust as needed
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
