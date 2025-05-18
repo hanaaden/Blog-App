@@ -25,7 +25,7 @@ function EditPost() {
         axios.put(`http://localhost:3001/editpost/${id}`, { title, description })
             .then(res => {
                 if (res.data === "Success") {
-                    navigate('/'); // Navigate to home after successful update
+                    navigate('/'); 
                 }
             })
             .catch(err => console.log(err));
@@ -33,10 +33,28 @@ function EditPost() {
 
     return (
         <div className="create-post-container">
-            <form onSubmit={handleSubmit}>
-                <input type='text' value={title} onChange={e => setTitle(e.target.value)} required />
-                <textarea value={description} onChange={e => setDescription(e.target.value)} required></textarea>
-                <button type="submit">Update Post</button>
+            <form onSubmit={handleSubmit} className="create-post-form">
+                <h2 className="create-post-title">Edit Your Post</h2>
+                <div className="create-post-input-group">
+                    <label className="create-post-label">Title</label>
+                    <input
+                        type='text'
+                        className="create-post-input"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="create-post-input-group">
+                    <label className="create-post-label">Description</label>
+                    <textarea
+                        className="create-post-textarea"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        required
+                    ></textarea>
+                </div>
+                <button type="submit" className="create-post-button">Update Post</button>
             </form>
         </div>
     );

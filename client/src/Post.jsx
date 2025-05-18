@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { UserContext } from './App';
@@ -11,23 +11,27 @@ function Post() {
     const { user } = useContext(UserContext);
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/getpostbyid/${id}`)
+        axios.get(`http://localhost:3001/getpostbyid/${id}`, { withCredentials: true })
             .then(result => setPost(result.data))
             .catch(err => console.log(err));
     }, [id]);
 
     const handleDelete = () => {
-        axios.delete(`http://localhost:3001/deletepost/${id}`)
-            .then(() => {
-                navigate('/'); // Redirect after deletion
-            })
-            .catch(err => console.log(err));
+        if (user.email) {
+            axios.delete(`http://localhost:3001/deletepost/${id}`, { withCredentials: true })
+                .then(() => {
+                    navigate('/'); 
+                })
+                .catch(err => console.log(err));
+        } else {
+            alert("You need to be logged in to delete this post.");
+        }
     };
 
     return (
         <div className="post-container">
-            <img src={`http://localhost:3001/${post.file}`} alt='' />
             <h2>{post.title}</h2>
+            <img src={`http://localhost:3001/${post.file}`} alt={post.title} />
             <p>{post.description}</p>
             {user.email === post.email && (
                 <div className='buttons'>

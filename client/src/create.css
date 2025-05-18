@@ -11,11 +11,11 @@ body {
 }
 
 .create-post-form {
-  background-color: #73946B; /* Same background color as register form */
-  padding: 50px; /* Increased padding for larger form size */
+  background-color: #73946B; /* Background color */
+  padding: 50px; /* Padding for form */
   border-radius: 10px; /* Rounded corners */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 600px; /* Increased width for a larger form */
+  width: 600px; /* Width of the form */
 }
 
 .create-post-title {

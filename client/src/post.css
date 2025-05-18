@@ -28,9 +28,33 @@
   color: #555;
   line-height: 1.5;
 }
-.buttons{
-  background-color:#546c4e ;
-  border: 1px solid #546c4e;
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.buttons button {
+  background-color: #537d5d; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.buttons button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.buttons button:focus {
+  outline: none; /* Remove outline on focus */
 }
 
 @media (max-width: 600px) {

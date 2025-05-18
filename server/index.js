@@ -20,7 +20,7 @@ if (!fs.existsSync(imagesDir)) {
 
 // Middleware setup
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:5173', // Adjust as needed
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
@@ -28,17 +28,15 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/public', express.static('public')); // Serve static files from 'public'
 
-// Connect to MongoDB and start server
-mongoose.connect('mongodb://127.0.0.1:27017/Blog')
+// Connect to MongoDB
+mongoose.connect('mongodb://127.0.0.1:27017/Blog', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log('✅ MongoDB connected');
         app.listen(3001, () => {
             console.log('🚀 Server is running on port 3001');
         });
     })
-    .catch(err => {
-        console.error('❌ Failed to connect to MongoDB:', err);
-    });
+    .catch(err => console.error('❌ Failed to connect to MongoDB:', err));
 
 // Middleware for verifying JWT
 const verifyUser = (req, res, next) => {
@@ -48,7 +46,7 @@ const verifyUser = (req, res, next) => {
     }
     jwt.verify(token, "jwt-secret-key", (err, decoded) => {
         if (err) {
-            return res.status(401).json("The token is wrong");
+            return res.status(401).json("The token is invalid");
         }
         req.email = decoded.email;
         req.username = decoded.username;
@@ -56,9 +54,41 @@ const verifyUser = (req, res, next) => {
     });
 };
 
-// Protected route
-app.get('/', verifyUser, (req, res) => {
-    return res.json({ email: req.email, username: req.username });
+// User registration
+app.post('/register', (req, res) => {
+    const { username, email, password } = req.body;
+    bcrypt.hash(password, 10, (err, hash) => {
+        if (err) return res.status(500).json(err);
+        const newUser = new UserModel({ username, email, password: hash });
+        newUser.save()
+            .then(() => res.json("User registered successfully"))
+            .catch(err => res.status(500).json(err));
+    });
+});
+
+// User login
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    UserModel.findOne({ email })
+        .then(user => {
+            if (!user) return res.status(400).json("User not found");
+            bcrypt.compare(password, user.password, (err, match) => {
+                if (match) {
+                    const token = jwt.sign({ email: user.email, username: user.username }, "jwt-secret-key");
+                    res.cookie("token", token, { httpOnly: true });
+                    res.json("success");
+                } else {
+                    res.status(400).json("Incorrect password");
+                }
+            });
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+    res.clearCookie('token');
+    return res.json("success");
 });
 
 // Create a post
@@ -82,6 +112,12 @@ app.post('/create', verifyUser, upload.single('file'), (req, res) => {
 
     newPost.save()
         .then(() => res.json("File uploaded successfully"))
+        .catch(err => res.status(500).json(err));
+});
+
+app.get('/getposts', (req, res) => {
+    PostModel.find()
+        .then(posts => res.json(posts))
         .catch(err => res.status(500).json(err));
 });
 
@@ -121,10 +157,4 @@ app.delete('/deletepost/:id', (req, res) => {
             res.json("Success");
         })
         .catch(err => res.status(500).json(err));
-});
-
-// Logout endpoint
-app.get('/logout', (req, res) => {
-    res.clearCookie('token');
-    return res.json("success");
 });

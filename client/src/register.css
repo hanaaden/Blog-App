@@ -45,6 +45,7 @@ body {
 
 .register-button {
   padding: 12px;
+  background-color: #546c4e;
   /* Button color */
   color: white;
   border: 3px solid white;
@@ -56,7 +57,7 @@ body {
 }
 
 .register-button:hover {
-  background-color: #546c4e;/* Darker blue on hover */
+  background-color: #73946B;/* Darker blue on hover */
 }
 
 .register-note {

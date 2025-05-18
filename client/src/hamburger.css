@@ -1,0 +1,75 @@
+/* Hamburger Menu styling */
+.hamburger-menu {
+    display: none; /* Hide by default */
+}
+
+.hamburger-icon {
+    background-color: #73946B; /* Green background */
+   color: #4e7a5b;
+    font-size: larger;
+    border: none; /* No border */
+    background: transparent;
+}
+
+/* Show navbar and hide hamburger menu on larger screens */
+@media (min-width: 769px) {
+    .navbar-header {
+        display: flex; /* Show navbar */
+    }
+
+    .hamburger-menu {
+        display: none; /* Hide hamburger */
+    }
+}
+
+/* Show hamburger menu on small screens */
+@media (max-width: 768px) {
+    .navbar-header {
+        display: none; /* Hide navbar */
+    }
+
+    .hamburger-menu {
+        display: block; /* Show hamburger */
+        padding: 15px; /* Increased padding */
+        border-radius: 5px; /* Rounded corners */
+        font-size: 24px; /* Increased font size */
+        transition: background-color 0.3s; /* Smooth transition */
+    }
+
+   
+
+    .menu {
+        position: absolute;
+        top: 50px; /* Adjust as needed */
+        right: 0;
+        background-color: #73946B; /* Green background for the menu */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
+        border-radius: 8px; /* Slightly more rounded corners */
+        z-index: 1000; /* Ensure it appears above other elements */
+        animation: fadeIn 0.3s; /* Fade-in animation */
+    }
+
+    .menu a {
+        display: block;
+        padding: 12px 20px; /* More spacious padding */
+        text-decoration: none; /* Remove underline */
+        color: #fff; /* White text color for contrast */
+        transition: background-color 0.2s; /* Smooth transition */
+    }
+
+    .menu a:hover {
+        background-color: #4e7a5b; /* Darker hover effect */
+    }
+
+    /* Animation for menu */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
