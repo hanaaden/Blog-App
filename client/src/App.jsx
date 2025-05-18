@@ -2,7 +2,7 @@ import React, { createContext, useEffect, useState } from 'react';
 import Navbar from './Navbar';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Register from './Register';
-import Login from './Login';
+import Login from './login';
 import Home from './Home';
 import CreatePost from './CreatePost';
 import Post from './Post';
