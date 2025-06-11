@@ -40,7 +40,7 @@ function Home() {
                             {/* Check if post.file exists before rendering image */}
                             {post.file && (
                                 <img
-                                    src={`https://blog-app-c5fz.onrender.com${post.file}`} // Correctly build the image URL
+                                    src={`${post.file}`} // Correctly build the image URL
                                     alt={post.title}
                                 />
                             )}
