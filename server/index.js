@@ -153,7 +153,7 @@ const upload = multer({ storage: storage });
 
 // --- Create Post Route ---
 // This route is protected by verifyUser middleware to ensure only logged-in users can create posts
-app.post('/create', verifyUser, upload.single('file'), (req, res) => {
+app.post('/create', verifyUser, (req, res) => {
     // We get the user's email from the JWT token (req.email set by verifyUser middleware)
     // However, your frontend sends req.body.email. For consistency, let's use req.email from token
     const postEmail = req.email; // Use email from the authenticated token
