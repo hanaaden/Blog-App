@@ -39,7 +39,7 @@ function Post() {
             {/* Ensure post.file exists before trying to render the image */}
             {post.file && (
                 <img
-                    src={`https://blog-app-c5fz.onrender.com${post.file}`} // Use the base URL + relative path
+                    src={`${post.file}`} // Use the base URL + relative path
                     alt={post.title}
                 />
             )}
