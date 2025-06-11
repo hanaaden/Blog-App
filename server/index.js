@@ -153,22 +153,45 @@ const upload = multer({ storage: storage });
 
 // --- Create Post Route ---
 // This route is protected by verifyUser middleware to ensure only logged-in users can create posts
-app.post('/create', verifyUser, (req, res) => {
-    // We get the user's email from the JWT token (req.email set by verifyUser middleware)
-    // However, your frontend sends req.body.email. For consistency, let's use req.email from token
-    const postEmail = req.email; // Use email from the authenticated token
+// app.post('/create', verifyUser, upload.single('file'), (req, res) => {
+//     // We get the user's email from the JWT token (req.email set by verifyUser middleware)
+//     // However, your frontend sends req.body.email. For consistency, let's use req.email from token
+//     const postEmail = req.email; // Use email from the authenticated token
 
-    if (!req.file) {
-        return res.status(400).json({ message: "No image file provided. Please upload an image." });
+//     if (!req.file) {
+//         return res.status(400).json({ message: "No image file provided. Please upload an image." });
+//     }
+
+//     const newPost = new PostModel({
+//         title: req.body.title,
+//         description: req.body.description,
+//         // Store the web-accessible path for the image in the database.
+//         // This path will be used by the frontend to construct the image URL.
+//         file: `/public/Images/${req.file.filename}`, // IMPORTANT: Added leading slash "/" here
+//         email: postEmail, // Use the email from the authenticated user
+//     });
+
+//     newPost.save()
+//         .then(() => res.json("Post created successfully"))
+//         .catch(err => {
+//             console.error("Error saving post:", err);
+//             res.status(500).json({ message: "Error saving post", error: err });
+//         });
+// });
+
+app.post('/create', verifyUser, (req, res) => {
+    const postEmail = req.email;
+    const { title, description, fileUrl } = req.body;
+
+    if (!fileUrl) {
+        return res.status(400).json({ message: "No image URL provided." });
     }
 
     const newPost = new PostModel({
-        title: req.body.title,
-        description: req.body.description,
-        // Store the web-accessible path for the image in the database.
-        // This path will be used by the frontend to construct the image URL.
-        file: `/public/Images/${req.file.filename}`, // IMPORTANT: Added leading slash "/" here
-        email: postEmail, // Use the email from the authenticated user
+        title,
+        description,
+        file: fileUrl, // This is now just a URL, not a path to a local file
+        email: postEmail,
     });
 
     newPost.save()
