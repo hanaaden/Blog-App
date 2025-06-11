@@ -51,7 +51,7 @@ function Home() {
                         </Link>
                     ))
                 ) : (
-                    <p className="no-posts-message">No posts available yet. Be the first to create one!</p>
+                    <p className="no-posts-message">Loading..................</p>
                 )}
             </div>
         </div>
