@@ -1,3 +1,4 @@
+// CreatePost.jsx
 import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { UserContext } from './App';
@@ -16,17 +17,21 @@ function CreatePost() {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('description', description);
-        formData.append('email', user.email);
-        formData.append('file', file);
+        formData.append('email', user.email); // User's email from context
+        formData.append('file', file); // The image file
 
         axios.post('https://blog-app-c5fz.onrender.com/create', formData, { withCredentials: true })
             .then(res => {
-                if (res.data === "File uploaded successfully") {
-                    // Redirect to home page after successful post creation
-                    navigate('/');
+                if (res.data === "Post created successfully") { // Match backend success message
+                    navigate('/'); // Redirect to home page after successful post creation
+                } else {
+                    alert(res.data.message || "Something went wrong creating the post.");
                 }
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.error("Error creating post:", err);
+                alert("Failed to create post. Please try again.");
+            });
     };
 
     return (

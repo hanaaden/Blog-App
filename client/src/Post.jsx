@@ -1,3 +1,4 @@
+// Post.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
@@ -17,12 +18,16 @@ function Post() {
     }, [id]);
 
     const handleDelete = () => {
+        // You might want to add a confirmation dialog here
         if (user.email) {
             axios.delete(`https://blog-app-c5fz.onrender.com/deletepost/${id}`, { withCredentials: true })
                 .then(() => {
-                    navigate('/'); 
+                    navigate('/');
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    console.error("Error deleting post:", err);
+                    alert("Failed to delete post. Please ensure you are logged in as the owner.");
+                });
         } else {
             alert("You need to be logged in to delete this post.");
         }
@@ -31,10 +36,17 @@ function Post() {
     return (
         <div className="post-container">
             <h2>{post.title}</h2>
-            <img src={`https://blog-app-c5fz.onrender.com/${post.file}`} alt={post.title} />
+            {/* Ensure post.file exists before trying to render the image */}
+            {post.file && (
+                <img
+                    src={`https://blog-app-c5fz.onrender.com${post.file}`} // Use the base URL + relative path
+                    alt={post.title}
+                />
+            )}
             <p>{post.description}</p>
             {user.email === post.email && (
                 <div className='buttons'>
+                    {/* Make sure /editpost/:id route exists and is correctly handled */}
                     <Link to={`/editpost/${post._id}`}><button>Edit</button></Link>
                     <button onClick={handleDelete}>Delete</button>
                 </div>

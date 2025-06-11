@@ -1,3 +1,4 @@
+// Home.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,7 +15,7 @@ function Home() {
             .then(response => {
                 setPosts(response.data);
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error("Error fetching posts:", err));
     }, []);
 
     const handleGetStarted = () => {
@@ -33,15 +34,25 @@ function Home() {
                 Get Started
             </button>
             <div className="container">
-                {posts.map(post => (
-                    <Link to={`/post/${post._id}`} key={post._id} className='post'>
-                        <img src={`https://blog-app-c5fz.onrender.com/${post.file}`} alt={post.title} />
-                        <div className="post-text">
-                            <h3>{post.title}</h3>
-                            <p>Read more about {post.title} by clicking anywhere in the</p>
-                        </div>
-                    </Link>
-                ))}
+                {posts.length > 0 ? (
+                    posts.map(post => (
+                        <Link to={`/post/${post._id}`} key={post._id} className='post'>
+                            {/* Check if post.file exists before rendering image */}
+                            {post.file && (
+                                <img
+                                    src={`https://blog-app-c5fz.onrender.com${post.file}`} // Correctly build the image URL
+                                    alt={post.title}
+                                />
+                            )}
+                            <div className="post-text">
+                                <h3>{post.title}</h3>
+                                <p>Read more about {post.title} by clicking anywhere in the</p>
+                            </div>
+                        </Link>
+                    ))
+                ) : (
+                    <p className="no-posts-message">No posts available yet. Be the first to create one!</p>
+                )}
             </div>
         </div>
     );
