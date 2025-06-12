@@ -42,9 +42,9 @@ app.use(cors({
 }));
 app.use(express.json()); // Parses incoming JSON requests
 app.use(cookieParser()); // Parses cookies from requests
-//for images
-app.use(express.json({ limit: '10mb' })); // Adjust limit as needed, e.g., '50mb' for larger images
-app.use(express.urlencoded({ limit: '10mb', extended: true })); // For URL-encoded data if any
+//for images to take larger images
+app.use(express.json({ limit: '100mb' })); // Adjust limit as needed, e.g., '50mb' for larger images
+app.use(express.urlencoded({ limit: '100mb', extended: true })); // For URL-encoded data if any
 // Serve static files from the 'public' directory.
 // This makes files inside 'public' accessible via '/public' in the URL.
 // For example, an image at public/Images/my_pic.png will be accessible at /public/Images/my_pic.png
