@@ -254,6 +254,45 @@ app.put('/editpost/:id', verifyUser, (req, res) => {
         });
 });
 
+// // --- Delete Post Route ---
+// app.delete('/deletepost/:id', verifyUser, (req, res) => {
+//     PostModel.findById(req.params.id)
+//         .then(post => {
+//             if (!post) {
+//                 return res.status(404).json({ message: "Post not found" });
+//             }
+//             // Authorization check: Only the post owner can delete
+//             if (post.email !== req.email) {
+//                 return res.status(403).json({ message: "You are not authorized to delete this post." });
+//             }
+
+//             // --- Delete the image file from the server's filesystem ---
+//             // Reconstruct the absolute path to the image file
+//             const imagePath = path.join(__dirname, post.file);
+//             if (fs.existsSync(imagePath)) {
+//                 fs.unlink(imagePath, (err) => {
+//                     if (err) {
+//                         console.error("Error deleting image file from server:", err);
+//                         // Log error but proceed with post deletion as image might be gone already
+//                     } else {
+//                         console.log("Image file deleted from server:", imagePath);
+//                     }
+//                 });
+//             } else {
+//                 console.warn("Image file not found on server at path:", imagePath);
+//             }
+
+//             // --- Delete the post document from MongoDB ---
+//             return PostModel.findByIdAndDelete(req.params.id);
+//         })
+//         .then(result => {
+//             res.json("Success"); // Send success response after post is deleted
+//         })
+//         .catch(err => {
+//             console.error("Error deleting post:", err);
+//             res.status(500).json({ message: "Error deleting post", error: err });
+//         });
+// });
 // --- Delete Post Route ---
 app.delete('/deletepost/:id', verifyUser, (req, res) => {
     PostModel.findById(req.params.id)
@@ -266,21 +305,10 @@ app.delete('/deletepost/:id', verifyUser, (req, res) => {
                 return res.status(403).json({ message: "You are not authorized to delete this post." });
             }
 
-            // --- Delete the image file from the server's filesystem ---
-            // Reconstruct the absolute path to the image file
-            const imagePath = path.join(__dirname, post.file);
-            if (fs.existsSync(imagePath)) {
-                fs.unlink(imagePath, (err) => {
-                    if (err) {
-                        console.error("Error deleting image file from server:", err);
-                        // Log error but proceed with post deletion as image might be gone already
-                    } else {
-                        console.log("Image file deleted from server:", imagePath);
-                    }
-                });
-            } else {
-                console.warn("Image file not found on server at path:", imagePath);
-            }
+            // --- REMOVED LOCAL FILE DELETION LOGIC HERE ---
+            // Because 'file' is now a URL, not a local path to delete.
+            // If you later integrate with a cloud storage service (e.g., Cloudinary),
+            // you would put the deletion logic for that service here.
 
             // --- Delete the post document from MongoDB ---
             return PostModel.findByIdAndDelete(req.params.id);
