@@ -100,7 +100,7 @@ const handleSubmit = (e) => {
                 <div className="create-post-input-group">
     <label className="create-post-label">Image URL</label>
     <input
-        type="url"
+        type="file"
         className="create-post-input"
         placeholder="https://example.com/image.jpg"
         onChange={e => setFileUrl(e.target.value)}
