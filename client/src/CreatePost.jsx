@@ -9,8 +9,8 @@ function CreatePost() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     // const [file, setFile] = useState(null);
-    const [fileUrl, setFileUrl] = useState('');
-
+    // const [fileUrl, setFileUrl] = useState('');
+    const [fileBase64, setFileBase64] = useState('');
     const { user } = useContext(UserContext);
     const navigate = useNavigate();
 
@@ -35,36 +35,93 @@ function CreatePost() {
     //             alert("Failed to create post. Please try again.");
     //         });
     // };
-const handleSubmit = (e) => {
-    e.preventDefault();
+// const handleSubmit = (e) => {
+//     e.preventDefault();
 
-    if (!fileUrl.startsWith('http')) {
-        alert("Please enter a valid image URL.");
-        return;
-    }
+//     if (!fileUrl.startsWith('http')) {
+//         alert("Please enter a valid image URL.");
+//         return;
+//     }
 
-    const postData = {
-        title,
-        description,
-        email: user.email,  // User's email from context
-        fileUrl,            // Image URL instead of uploaded file
+//     const postData = {
+//         title,
+//         description,
+//         email: user.email,  // User's email from context
+//         fileUrl,            // Image URL instead of uploaded file
+//     };
+
+//     axios.post('https://blog-app-c5fz.onrender.com/create', postData, { withCredentials: true })
+//         .then(res => {
+//             if (res.data === "Post created successfully") {
+//                 navigate('/');
+//             } else {
+//                 alert(res.data.message || "Something went wrong creating the post.");
+//             }
+//         })
+//         .catch(err => {
+//             console.error("Error creating post:", err);
+//             alert("Failed to create post. Please try again.");
+//         });
+// };
+
+ const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Check file size (e.g., max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File is too large. Please select an image under 2MB.");
+                setFileBase64(''); // Clear previous selection
+                e.target.value = ''; // Clear file input
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFileBase64(reader.result); // This will be the Base64 string
+            };
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+                alert("Failed to read file.");
+            };
+            reader.readAsDataURL(file); // Read the file as a Data URL (Base64)
+        } else {
+            setFileBase64('');
+        }
     };
 
-    axios.post('https://blog-app-c5fz.onrender.com/create', postData, { withCredentials: true })
-        .then(res => {
-            if (res.data === "Post created successfully") {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!fileBase64) {
+            alert("Please select an image file to upload.");
+            return;
+        }
+
+        const postData = {
+            title,
+            description,
+            email: user.email,
+            file: fileBase64, // Send the Base64 string
+        };
+
+        try {
+            const res = await axios.post('https://blog-app-c5fz.onrender.com/create', postData, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json', // We're sending JSON now
+                },
+            });
+
+            if (res.status === 201 || res.data === "Post created successfully") {
                 navigate('/');
             } else {
                 alert(res.data.message || "Something went wrong creating the post.");
             }
-        })
-        .catch(err => {
+        } catch (err) {
             console.error("Error creating post:", err);
             alert("Failed to create post. Please try again.");
-        });
-};
-
-
+        }
+    };
     return (
         <div className="create-post-container">
             <form onSubmit={handleSubmit} className="create-post-form">
@@ -99,13 +156,20 @@ const handleSubmit = (e) => {
                 </div> */}
                 <div className="create-post-input-group">
     <label className="create-post-label">Image URL</label>
-    <input
+{/*     <input
         type="file"
         className="create-post-input"
         placeholder="https://example.com/image.jpg"
         onChange={e => setFileUrl(e.target.value)}
         required
-    />
+    /> */}
+                     <input
+                        type="file"
+                        accept="image/*" // Restrict to image files
+                        className="create-post-file-input"
+                        onChange={handleFileChange} // Use the new handler
+                        required
+                    />
 </div>
 
                 <button type="submit" className="create-post-button">Create Post</button>
