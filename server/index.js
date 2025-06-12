@@ -181,28 +181,98 @@ const upload = multer({ storage: storage });
 //         });
 // });
 
-app.post('/create', verifyUser, (req, res) => {
-    const postEmail = req.email;
-    const { title, description, fileUrl } = req.body;
+// app.post('/create', verifyUser, (req, res) => {
+//     const postEmail = req.email;
+//     const { title, description, fileUrl } = req.body;
 
-    if (!fileUrl) {
-        return res.status(400).json({ message: "No image URL provided." });
-    }
+//     if (!fileUrl) {
+//         return res.status(400).json({ message: "No image URL provided." });
+//     }
 
-    const newPost = new PostModel({
-        title,
-        description,
-        file: fileUrl, // This is now just a URL, not a path to a local file
-        email: postEmail,
-    });
+//     const newPost = new PostModel({
+//         title,
+//         description,
+//         file: fileUrl, // This is now just a URL, not a path to a local file
+//         email: postEmail,
+//     });
 
-    newPost.save()
-        .then(() => res.json("Post created successfully"))
-        .catch(err => {
-            console.error("Error saving post:", err);
-            res.status(500).json({ message: "Error saving post", error: err });
+//     newPost.save()
+//         .then(() => res.json("Post created successfully"))
+//         .catch(err => {
+//             console.error("Error saving post:", err);
+//             res.status(500).json({ message: "Error saving post", error: err });
+//         });
+// });
+// --- Multer Storage Configuration for Image Uploads ---
+// Keep this commented out if you are NOT using multer.
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, imagesDir);
+//     },
+//     filename: (req, file, cb) => {
+//         cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+//     }
+// });
+// const upload = multer({ storage: storage });
+
+// IMPORTANT: This is the correct route to handle Base64 image uploads
+app.post('/create', verifyUser, async (req, res) => { // Make it async
+    try {
+        const postEmail = req.email;
+        const { title, description, file } = req.body; // <--- Correctly destructure 'file'
+
+        if (!file || !title || !description) { // Check for all required fields
+            return res.status(400).json({ message: "Missing fields (title, description, or image)." });
+        }
+
+        // --- Logic to process Base64 string and save as file ---
+        // Extract file type (e.g., 'png', 'jpeg') from Base64 string
+        const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            return res.status(400).json({ message: "Invalid image data format." });
+        }
+        const fileType = matches[1].split('/')[1]; // e.g., 'png', 'jpeg'
+        const base64Data = matches[2];
+
+        // Create a unique filename
+        const filename = `image_${Date.now()}.${fileType}`;
+        const filePath = path.join(imagesDir, filename);
+        const webAccessiblePath = `/public/Images/${filename}`;
+
+        // Convert Base64 to a buffer and save the file asynchronously
+        fs.writeFile(filePath, base64Data, 'base64', async (err) => {
+            if (err) {
+                console.error("Error saving image file:", err);
+                return res.status(500).json({ message: "Error saving image file", error: err });
+            }
+
+            const newPost = new PostModel({
+                title,
+                description,
+                file: webAccessiblePath, // Store the local path where the file is saved
+                email: postEmail,
+            });
+
+            const savedPost = await newPost.save();
+            res.status(201).json("Post created successfully"); // Or send back the savedPost object
         });
+
+    } catch (err) {
+        console.error("Error creating post:", err);
+        res.status(500).json({ message: "Error creating post", error: err });
+    }
 });
+
+// IMPORTANT: COMMENT OUT OR REMOVE THE OLD, INCORRECT /CREATE ROUTE THAT EXPECTS 'fileUrl'
+// app.post('/create', verifyUser, (req, res) => {
+//     const postEmail = req.email;
+//     const { title, description, fileUrl } = req.body; // THIS IS WRONG FOR BASE64 UPLOADS
+
+//     if (!fileUrl) {
+//         return res.status(400).json({ message: "No image URL provided." });
+//     }
+//     // ... rest of the old logic
+// });
 
 // --- Get All Posts Route ---
 app.get('/getposts', (req, res) => {
@@ -328,6 +398,6 @@ app.delete('/deletepost/:id', verifyUser, (req, res) => {
 
 //to see if my backend is running 
 app.get('/', (req, res) => {
-  res.send('Hello from Blog Backend!');
+  res.send('Hello from Blog Backend! 2');
 });
 
