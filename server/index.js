@@ -323,3 +323,11 @@ app.delete('/deletepost/:id', verifyUser, (req, res) => {
             res.status(500).json({ message: "Error deleting post", error: err });
         });
 });
+
+
+
+//to see if my backend is running 
+app.get('/', (req, res) => {
+  res.send('Hello from Blog Backend!');
+});
+
