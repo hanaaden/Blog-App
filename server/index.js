@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const multer = require('multer');
+// const multer = require('multer'); // No longer needed for Base64 uploads
 const path = require('path');
 const fs = require('fs');
 
@@ -40,11 +40,14 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
-app.use(express.json()); // Parses incoming JSON requests
+
+// IMPORTANT: Place JSON/URL-encoded body parsers BEFORE cookie-parser and static server
+// for images to take larger images (if they're part of the JSON/URL-encoded body)
+app.use(express.json({ limit: '50mb' })); // Adjust limit as needed, e.g., '50mb' for larger images. '1000mb' is extremely large and might be unnecessary.
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // For URL-encoded data if any
+
 app.use(cookieParser()); // Parses cookies from requests
-//for images to take larger images
-app.use(express.json({ limit: '1000mb' })); // Adjust limit as needed, e.g., '50mb' for larger images
-app.use(express.urlencoded({ limit: '1000mb', extended: true })); // For URL-encoded data if any
+
 // Serve static files from the 'public' directory.
 // This makes files inside 'public' accessible via '/public' in the URL.
 // For example, an image at public/Images/my_pic.png will be accessible at /public/Images/my_pic.png
@@ -67,12 +70,22 @@ const verifyUser = (req, res, next) => {
     if (!token) {
         return res.status(401).json("The token is missing");
     }
-    jwt.verify(token, process.env.JWT_SECRET_KEY || "jwt-secret-key-fallback", (err, decoded) => { // Use environment variable for secret, with a fallback
+    jwt.verify(token, process.env.JWT_SECRET_KEY || "jwt-secret-key-fallback", (err, decoded) => {
         if (err) {
-            return res.status(401).json("The token is invalid");
+            console.error('Authentication: Token verification failed:', err);
+            // Clear invalid token cookie to prevent repeated attempts
+            // Ensure these match the options used when setting the cookie on login
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+                path: '/'
+            });
+            return res.status(401).json("The token is invalid or expired");
         }
         req.email = decoded.email;
         req.username = decoded.username;
+        console.log(`Authentication: Token verified for email: ${req.email}, username: ${req.username}`);
         next();
     });
 };
@@ -110,13 +123,14 @@ app.post('/login', (req, res) => {
                     return res.status(500).json({ message: "Error comparing passwords", error: err });
                 }
                 if (match) {
-                    const token = jwt.sign({ email: user.email, username: user.username }, process.env.JWT_SECRET_KEY || "jwt-secret-key-fallback", { expiresIn: '1h' }); // Add expiration
-                    // Set cookie options for production (secure: true, sameSite: 'None')
+                    const token = jwt.sign({ email: user.email, username: user.username }, process.env.JWT_SECRET_KEY || "jwt-secret-key-fallback", { expiresIn: '1h' });
+                    // Set cookie options based on environment
                     res.cookie("token", token, {
                         httpOnly: true,
-                        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // Adjust SameSite for cross-origin if needed
-                        maxAge: 3600000 // 1 hour
+                        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production (HTTPS)
+                        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // 'None' for cross-origin production, 'Lax' for local
+                        maxAge: 3600000, // 1 hour
+                        path: '/'
                     });
                     res.json("success");
                 } else {
@@ -132,79 +146,17 @@ app.post('/login', (req, res) => {
 
 // --- Logout Route ---
 app.get('/logout', (req, res) => {
+    // Clear cookie with matching options
     res.clearCookie('token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        path: '/',
     });
     return res.json("success");
 });
 
-// --- Multer Storage Configuration for Image Uploads ---
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        // Save files to the public/Images directory
-        cb(null, imagesDir);
-    },
-    filename: (req, file, cb) => {
-        // Create a unique filename using fieldname, timestamp, and original extension
-        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage: storage });
-
-// --- Create Post Route ---
-// This route is protected by verifyUser middleware to ensure only logged-in users can create posts
-// app.post('/create', verifyUser, upload.single('file'), (req, res) => {
-//     // We get the user's email from the JWT token (req.email set by verifyUser middleware)
-//     // However, your frontend sends req.body.email. For consistency, let's use req.email from token
-//     const postEmail = req.email; // Use email from the authenticated token
-
-//     if (!req.file) {
-//         return res.status(400).json({ message: "No image file provided. Please upload an image." });
-//     }
-
-//     const newPost = new PostModel({
-//         title: req.body.title,
-//         description: req.body.description,
-//         // Store the web-accessible path for the image in the database.
-//         // This path will be used by the frontend to construct the image URL.
-//         file: `/public/Images/${req.file.filename}`, // IMPORTANT: Added leading slash "/" here
-//         email: postEmail, // Use the email from the authenticated user
-//     });
-
-//     newPost.save()
-//         .then(() => res.json("Post created successfully"))
-//         .catch(err => {
-//             console.error("Error saving post:", err);
-//             res.status(500).json({ message: "Error saving post", error: err });
-//         });
-// });
-
-// app.post('/create', verifyUser, (req, res) => {
-//     const postEmail = req.email;
-//     const { title, description, fileUrl } = req.body;
-
-//     if (!fileUrl) {
-//         return res.status(400).json({ message: "No image URL provided." });
-//     }
-
-//     const newPost = new PostModel({
-//         title,
-//         description,
-//         file: fileUrl, // This is now just a URL, not a path to a local file
-//         email: postEmail,
-//     });
-
-//     newPost.save()
-//         .then(() => res.json("Post created successfully"))
-//         .catch(err => {
-//             console.error("Error saving post:", err);
-//             res.status(500).json({ message: "Error saving post", error: err });
-//         });
-// });
-// --- Multer Storage Configuration for Image Uploads ---
-// Keep this commented out if you are NOT using multer.
+// --- NO LONGER NEEDED FOR BASE64 UPLOADS, KEEPING IT COMMENTED ---
 // const storage = multer.diskStorage({
 //     destination: (req, file, cb) => {
 //         cb(null, imagesDir);
@@ -215,21 +167,22 @@ const upload = multer({ storage: storage });
 // });
 // const upload = multer({ storage: storage });
 
-// IMPORTANT: This is the correct route to handle Base64 image uploads
-app.post('/create', verifyUser, async (req, res) => { // Make it async
+
+// --- Create Post Route (Handles Base64 Image Upload) ---
+app.post('/create', verifyUser, async (req, res) => {
     try {
         const postEmail = req.email;
-        const { title, description, file } = req.body; // <--- Correctly destructure 'file'
+        const { title, description, file } = req.body; // 'file' is expected to be the Base64 string
 
-        if (!file || !title || !description) { // Check for all required fields
-            return res.status(400).json({ message: "Missing fields (title, description, or image)." });
+        if (!title || !description || !file) {
+            return res.status(400).json({ message: "Missing required fields (title, description, or image data)." });
         }
 
         // --- Logic to process Base64 string and save as file ---
-        // Extract file type (e.g., 'png', 'jpeg') from Base64 string
+        // Ensure the Base64 string includes the data URL prefix (e.g., "data:image/png;base64,...")
         const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
         if (!matches || matches.length !== 3) {
-            return res.status(400).json({ message: "Invalid image data format." });
+            return res.status(400).json({ message: "Invalid image data format. Expected a data URL (e.g., data:image/png;base64,...)." });
         }
         const fileType = matches[1].split('/')[1]; // e.g., 'png', 'jpeg'
         const base64Data = matches[2];
@@ -237,42 +190,42 @@ app.post('/create', verifyUser, async (req, res) => { // Make it async
         // Create a unique filename
         const filename = `image_${Date.now()}.${fileType}`;
         const filePath = path.join(imagesDir, filename);
-        const webAccessiblePath = `/public/Images/${filename}`;
+        const webAccessiblePath = `/public/Images/${filename}`; // This is the path stored in DB and used by frontend
 
-        // Convert Base64 to a buffer and save the file asynchronously
+        // Save the file asynchronously
         fs.writeFile(filePath, base64Data, 'base64', async (err) => {
             if (err) {
                 console.error("Error saving image file:", err);
-                return res.status(500).json({ message: "Error saving image file", error: err });
+                return res.status(500).json({ message: "Error saving image file. Check server permissions or disk space.", error: err.message });
             }
+            console.log(`Image saved to: ${filePath}`);
 
-            const newPost = new PostModel({
-                title,
-                description,
-                file: webAccessiblePath, // Store the local path where the file is saved
-                email: postEmail,
-            });
+            try {
+                const newPost = new PostModel({
+                    title,
+                    description,
+                    file: webAccessiblePath, // Store the web-accessible path
+                    email: postEmail,
+                });
 
-            const savedPost = await newPost.save();
-            res.status(201).json("Post created successfully"); // Or send back the savedPost object
+                await newPost.save();
+                res.status(201).json({ message: "Post created successfully", imagePath: webAccessiblePath }); // Provide image path back
+            } catch (dbErr) {
+                console.error("Error saving post to database:", dbErr);
+                // If DB save fails, consider deleting the file you just saved to prevent orphans
+                fs.unlink(filePath, (unlinkErr) => {
+                    if (unlinkErr) console.error("Failed to delete orphaned image file:", unlinkErr);
+                });
+                res.status(500).json({ message: "Error saving post to database", error: dbErr.message });
+            }
         });
 
     } catch (err) {
-        console.error("Error creating post:", err);
-        res.status(500).json({ message: "Error creating post", error: err });
+        console.error("Unexpected error in /create route:", err);
+        res.status(500).json({ message: "Server error during post creation", error: err.message });
     }
 });
 
-// IMPORTANT: COMMENT OUT OR REMOVE THE OLD, INCORRECT /CREATE ROUTE THAT EXPECTS 'fileUrl'
-// app.post('/create', verifyUser, (req, res) => {
-//     const postEmail = req.email;
-//     const { title, description, fileUrl } = req.body; // THIS IS WRONG FOR BASE64 UPLOADS
-
-//     if (!fileUrl) {
-//         return res.status(400).json({ message: "No image URL provided." });
-//     }
-//     // ... rest of the old logic
-// });
 
 // --- Get All Posts Route ---
 app.get('/getposts', (req, res) => {
@@ -304,6 +257,9 @@ app.get('/getpostbyid/:id', (req, res) => {
 app.put('/editpost/:id', verifyUser, (req, res) => {
     const { title, description } = req.body;
 
+    // IMPORTANT: If you want to allow image updates on edit, you'd need similar Base64 handling here.
+    // For now, this route only updates title and description.
+
     PostModel.findById(req.params.id)
         .then(post => {
             if (!post) {
@@ -317,7 +273,6 @@ app.put('/editpost/:id', verifyUser, (req, res) => {
             return PostModel.findByIdAndUpdate(req.params.id, { title, description }, { new: true });
         })
         .then(updatedPost => {
-            // updatedPost will be the document after update. You can send it back if needed.
             res.json("Success");
         })
         .catch(err => {
@@ -326,45 +281,6 @@ app.put('/editpost/:id', verifyUser, (req, res) => {
         });
 });
 
-// // --- Delete Post Route ---
-// app.delete('/deletepost/:id', verifyUser, (req, res) => {
-//     PostModel.findById(req.params.id)
-//         .then(post => {
-//             if (!post) {
-//                 return res.status(404).json({ message: "Post not found" });
-//             }
-//             // Authorization check: Only the post owner can delete
-//             if (post.email !== req.email) {
-//                 return res.status(403).json({ message: "You are not authorized to delete this post." });
-//             }
-
-//             // --- Delete the image file from the server's filesystem ---
-//             // Reconstruct the absolute path to the image file
-//             const imagePath = path.join(__dirname, post.file);
-//             if (fs.existsSync(imagePath)) {
-//                 fs.unlink(imagePath, (err) => {
-//                     if (err) {
-//                         console.error("Error deleting image file from server:", err);
-//                         // Log error but proceed with post deletion as image might be gone already
-//                     } else {
-//                         console.log("Image file deleted from server:", imagePath);
-//                     }
-//                 });
-//             } else {
-//                 console.warn("Image file not found on server at path:", imagePath);
-//             }
-
-//             // --- Delete the post document from MongoDB ---
-//             return PostModel.findByIdAndDelete(req.params.id);
-//         })
-//         .then(result => {
-//             res.json("Success"); // Send success response after post is deleted
-//         })
-//         .catch(err => {
-//             console.error("Error deleting post:", err);
-//             res.status(500).json({ message: "Error deleting post", error: err });
-//         });
-// });
 // --- Delete Post Route ---
 app.delete('/deletepost/:id', verifyUser, (req, res) => {
     PostModel.findById(req.params.id)
@@ -377,10 +293,21 @@ app.delete('/deletepost/:id', verifyUser, (req, res) => {
                 return res.status(403).json({ message: "You are not authorized to delete this post." });
             }
 
-            // --- REMOVED LOCAL FILE DELETION LOGIC HERE ---
-            // Because 'file' is now a URL, not a local path to delete.
-            // If you later integrate with a cloud storage service (e.g., Cloudinary),
-            // you would put the deletion logic for that service here.
+            // --- Delete the image file from the server's filesystem ---
+            // Only attempt to delete if 'post.file' is a valid local path (starts with /public/Images/)
+            if (post.file && post.file.startsWith('/public/Images/')) {
+                const imagePath = path.join(__dirname, post.file);
+                fs.unlink(imagePath, (err) => {
+                    if (err) {
+                        console.error(`Error deleting image file '${imagePath}':`, err);
+                        // Log error but proceed with post deletion as image might be gone already or path was bad
+                    } else {
+                        console.log(`Image file deleted from server: ${imagePath}`);
+                    }
+                });
+            } else {
+                console.warn(`Post has no associated local image file to delete or path is invalid: ${post.file}`);
+            }
 
             // --- Delete the post document from MongoDB ---
             return PostModel.findByIdAndDelete(req.params.id);
@@ -395,9 +322,7 @@ app.delete('/deletepost/:id', verifyUser, (req, res) => {
 });
 
 
-
-//to see if my backend is running 
+//to see if my backend is running
 app.get('/', (req, res) => {
-  res.send('Hello from Blog Backend! 2');
+    res.send('Hello from Blog Backend! 2');
 });
-
