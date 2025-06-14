@@ -17,7 +17,8 @@ function HamburgerMenu({ user, onLogout }) {
             {isOpen && (
                 <div className="menu">
                     <Link to="/" onClick={toggleMenu}>Home</Link>
-                    <Link to="/create" onClick={toggleMenu}>Create Post</Link>
+                    {/* <Link to="/create" onClick={toggleMenu}>Create Post</Link> */}
+                     {user && user.username && <Link to='/create' className='link'>Create</Link>}
                     <Link to="/contactus" onClick={toggleMenu}>Contact Us</Link>
                     {user.username ? (
                         <Link to="/" onClick={() => { onLogout(); toggleMenu(); }}>Logout</Link>
