@@ -16,7 +16,8 @@ import HamburgerMenu from './HamburgerMenu';
 export const UserContext = createContext();
 
 function App() {
-    const [user, setUser] = useState({});
+    // const [user, setUser] = useState({});
+    const [user, setUser] = useState(null);
 
     axios.defaults.withCredentials = true;
 
